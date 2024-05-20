@@ -84,14 +84,26 @@ class MessagesController extends AppController
             }
         } elseif ($this->request->query("messageId")) {
             $message = $this->request->query("messageId");
-            $this->Message->delete($message);
+            $this->Message->id = $message;
+            $delete = $this->Message->save(array(
+                'status' => 0
+            ));
 
-            echo json_encode(
-                array(
-                    'status' => true,
-                    'message' => 'Message deleted successfully'
-                )
-            );
+            if ($delete) {
+                echo json_encode(
+                    array(
+                        'status' => true,
+                        'message' => 'Message deleted successfully'
+                    )
+                );
+            } else {
+                echo json_encode(
+                    array(
+                        'status' => false,
+                        'message' => 'Message could not be deleted',
+                    )
+                );
+            }
         } else {
             echo json_encode(
                 array(
@@ -220,7 +232,8 @@ class MessagesController extends AppController
                 echo json_encode(
                     array(
                         'status' => true,
-                        'message' => 'Message sent successfully'
+                        'message' => 'Message sent successfully',
+                        'id' => $this->Message->id
                     )
                 );
             } else {

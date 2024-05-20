@@ -42,12 +42,12 @@
                                     )
                                 ); ?>
                             </div>
-                            <div class="col-10">
+                            <div class="col-10 d-flex flex-column">
                                 <div class="card-body">
                                     <h5 class="card-title"><?= $message['sender']['name'] ?? "Unknown user"; ?></h5>
                                     <p class="card-text"><?= strlen($message['Message']['message']) > 50 ? substr($message['Message']['message'], 0, 50) . "..." : $message['Message']['message'] ?></p>
                                 </div>
-                                <div class="card-footer">
+                                <div class="card-footer mt-auto">
                                     <p class="card-text"><small class="text-muted"><?= date("F d, Y h:i a", strtotime($message['Message']['created']))  ?></small></p>
                                 </div>
                             </div>
@@ -58,12 +58,17 @@
                 <div class="col-12 pull-right p-0">
                     <div class="card ml-auto mb-3 w-75 text-right">
                         <div class="row no-gutters">
-                            <div class="col-10">
+                            <div class="col-10 d-flex flex-column">
                                 <div class="card-body">
+                                    <div class="position-relative">
+                                        <div class="position-absolute" style="z-index: 1000; top: 0; left: 0;">
+                                            <button class="btn btn-danger delete-message btn-sm" data-message-id="<?= $message['Message']['id'] ?>">Delete</button>
+                                        </div>
+                                    </div>
                                     <h5 class="card-title"><?= $message['sender']['name'] ?? "Unknown user"; ?></h5>
                                     <p class="card-text"><?= $message['Message']['message'] ?></p>
                                 </div>
-                                <div class="card-footer">
+                                <div class="card-footer mt-auto">
                                     <p class="card-text"><small class="text-muted"><?= date("F d, Y h:i a", strtotime($message['Message']['created']))  ?></small></p>
                                 </div>
                             </div>
@@ -103,6 +108,9 @@
                 </div>
                 <div class="col-10">
                     <div class="card-body">
+                        <div class="position-absolute" style="z-index: 1000; top: 0; right: 0;">
+                            <button class="btn btn-danger delete-message" data-message-id="{{message_id}}">Delete</button>
+                        </div>
                         <h5 class="card-title">{{name}}</h5>
                         <p class="card-text">{{msg}}</p>
                     </div>
@@ -121,6 +129,11 @@
             <div class="row no-gutters">
                 <div class="col-10">
                     <div class="card-body">
+                        <div class="position-relative">
+                            <div class="position-absolute" style="z-index: 1000; top: 0; left: 0;">
+                                <button class="btn btn-danger btn-sm delete-message" data-message-id="{{message_id}}">Delete</button>
+                            </div>
+                        </div>
                         <h5 class="card-title">{{name}}</h5>
                         <p class="card-text">{{msg}}</p>
                     </div>
@@ -159,34 +172,54 @@
                     $.each(response.messages, function(index, message) {
                         if (message.Message.sender_id == <?= $_SESSION['Auth']['User']['id'] ?>) {
                             let template = $("#sender").html();
-                            template = template.replace("{{name}}", message.sender.name);
-                            template = template.replace("{{msg}}", message.Message.message);
-                            template = template.replace("{{datetime}}", new Date(message.Message.created).toLocaleDateString("en-US", {
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
-                                hour: "numeric",
-                                minute: "numeric"
-                            }));
-                            template = template.replace("{{profile_picture}}", message.sender.profile_picture);
-                            $(".convo_body").append(template);
+
                         } else {
                             let template = $("#recipient").html();
-                            template = template.replace("{{name}}", message.sender.name);
-                            template = template.replace("{{msg}}", message.Message.message);
-                            template = template.replace("{{datetime}}", new Date(message.Message.created).toLocaleDateString("en-US", {
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
-                                hour: "numeric",
-                                minute: "numeric"
-                            }));
-                            template = template.replace("{{profile_picture}}", message.sender.profile_picture);
-                            $(".convo_body").append(template);
+
                         }
+
+                        template = template.replace("{{message_id}}", message.Message.id);
+                        template = template.replace("{{name}}", message.sender.name);
+                        template = template.replace("{{msg}}", message.Message.message);
+                        template = template.replace("{{datetime}}", new Date(message.Message.created).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                            hour: "numeric",
+                            minute: "numeric"
+                        }));
+                        template = template.replace("{{profile_picture}}", message.sender.profile_picture);
+                        $(".convo_body").append(template);
                     });
                 }
             });
+        });
+
+        $(document).on("click", ".delete-message", function() {
+            let messageId = $(this).data("message-id");
+            let card = $(this).closest(".card");
+
+            if (confirm("Are you sure you want to delete this message?")) {
+                $.ajax({
+                    url: "<?= $this->Html->url(array('controller' => 'messages', 'action' => 'delete_messages')) ?>",
+                    type: "GET",
+                    data: {
+                        messageId: messageId
+                    },
+                    dataType: "json",
+                    success: function(response) {
+                        if (response.status) {
+                            card.closest(".card").hide("slow", function() {
+                                $(this).remove();
+                            });
+                        } else {
+                            alert(response.message);
+                        }
+                    }
+                });
+            }
+
+
         });
 
         $("#addMessageForm").on("submit", function(event) {
@@ -198,11 +231,25 @@
                 data: {
                     message: message
                 },
+                dataType: "json",
                 success: function(response) {
 
                     var message = $("textarea").val();
-                    var html = '<div class="col-12 pull-right p-0"><div class="card ml-auto mb-3 w-75 text-right"><div class="row no-gutters"><div class="col-10"><div class="card-body"><h5 class="card-title"><?= $_SESSION['Auth']['User']['name'] ?? "Unknown user"; ?></h5><p class="card-text">' + message + '</p></div><div class="card-footer"><p class="card-text"><small class="text-muted">' + new Date().toLocaleString() + '</small></p></div></div><div class="col-2 border-left"><?php echo $this->html->image($_SESSION['Auth']['User']['profile_picture'] ?? 'placeholder.png', array('alt' => 'Image Alt Text', 'class' => 'img-thumbnail border-0', 'id' => 'my-image', 'width' => '150px', 'height' => '150px')); ?></div></div></div></div>';
-                    $(".convo_body").prepend(html);
+                    let template = $("#sender").html();
+
+                    template = template.replace("{{message_id}}", response.id);
+                    template = template.replace("{{name}}", "<?= $_SESSION['Auth']['User']['name']; ?>");
+                    template = template.replace("{{msg}}", message);
+                    template = template.replace("{{datetime}}", new Date().toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "numeric"
+                    }));
+                    template = template.replace("{{profile_picture}}", "<?= $_SESSION['Auth']['User']['profile_picture'] ?>");
+
+                    $(".convo_body").prepend(template);
                     $("textarea").val("");
                 }
             });

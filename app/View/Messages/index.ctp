@@ -31,6 +31,12 @@
 <div class="container">
     <div class="row">
         <div class="col mt-3 p-0">
+            <div class="form-inline">
+                <label for="search">Search</label>
+                <input type="text" id="search" class="form-control form-control-sm ml-2" placeholder="Search for messages">
+            </div>
+        </div>
+        <div class="col mt-3 p-0">
             <div class="d-flex justify-content-end align-items-center">
                 <?php echo $this->Html->link(
                     "New Message",
