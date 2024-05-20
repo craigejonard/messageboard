@@ -8,11 +8,11 @@ class MessagesController extends AppController
     {
         // Define the raw SQL query
         $sql = "
-            SELECT user.id, user.name, message.message
+            SELECT user.id, user.profile_picture, user.name, message.message, message.created
             FROM 
                 (SELECT IF(recipient_id = {$this->Auth->user('id')}, sender_id, recipient_id) AS other_user
                 FROM messages
-                WHERE (recipient_id = {$this->Auth->user('id')} OR sender_id = {$this->Auth->user('id')})
+                WHERE messages.status = 1 AND (recipient_id = {$this->Auth->user('id')} OR sender_id = {$this->Auth->user('id')})
                 GROUP BY other_user) AS subquery
             LEFT JOIN users user ON subquery.other_user = user.id
             JOIN messages message ON user.id = message.sender_id OR user.id = message.recipient_id 
@@ -40,6 +40,68 @@ class MessagesController extends AppController
         $this->set('recipients', $results);
     }
 
+    public function delete_messages()
+    {
+        if ($this->request->is("ajax") === false) {
+            throw new MethodNotAllowedException();
+        }
+
+        $this->autoRender = false;
+
+        if ($this->request->query("userId")) {
+            $recipient = $this->request->query("userId");
+            //soft delete
+            $delete = $this->Message->updateAll(
+                array('status' => 0),
+                array(
+                    'OR' => array(
+                        array(
+                            'Message.sender_id' => $this->Auth->user('id'),
+                            'Message.recipient_id' => $recipient
+                        ),
+                        array(
+                            'Message.sender_id' => $recipient,
+                            'Message.recipient_id' => $this->Auth->user('id')
+                        )
+                    )
+                )
+            );
+
+            if ($delete) {
+                echo json_encode(
+                    array(
+                        'status' => true,
+                        'message' => 'Messages deleted successfully'
+                    )
+                );
+            } else {
+                echo json_encode(
+                    array(
+                        'status' => false,
+                        'message' => 'Messages could not be deleted',
+                    )
+                );
+            }
+        } elseif ($this->request->query("messageId")) {
+            $message = $this->request->query("messageId");
+            $this->Message->delete($message);
+
+            echo json_encode(
+                array(
+                    'status' => true,
+                    'message' => 'Message deleted successfully'
+                )
+            );
+        } else {
+            echo json_encode(
+                array(
+                    'status' => false,
+                    'message' => 'Message could not be deleted',
+                )
+            );
+        }
+    }
+
     public function conversation($recipient)
     {
 
@@ -64,6 +126,7 @@ class MessagesController extends AppController
                 )
             ),
             'conditions' => array(
+                "status" => 1,
                 'OR' => array(
                     array(
                         'Message.sender_id' => $this->Auth->user('id'),

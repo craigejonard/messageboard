@@ -50,10 +50,11 @@
 
         <a href="<?= $this->Html->url(array("controller" => "messages", "action" => "conversation", $recipient_data['user']['id'])) ?>" class="row d-flex justify-content-center align-items-center my-2 message-row">
             <div class="card mb-3 w-100">
+
                 <div class="row no-gutters">
                     <div class="col-2 border-right">
                         <?php echo $this->html->image(
-                            'placeholder.png',
+                            $recipient_data['user']['profile_picture'] ?? 'placeholder.png',
                             array(
                                 'alt' => 'Image Alt Text',
                                 'class' => 'img-thumbnail border-0', // Example CSS class
@@ -61,10 +62,19 @@
                             )
                         ); ?>
                     </div>
-                    <div class="col-10">
+                    <div class="col-10 d-flex flex-column">
                         <div class="card-body">
+                            <div class="position-relative">
+                                <div class="position-absolute" style="top: 0; right: 0;">
+                                    <button data-userId="<?= $recipient_data['user']['id']; ?>" class="btn btn-danger btn-delete btn-sm">Delete</button>
+                                </div>
+                            </div>
+
                             <h5 class="card-title"><?= $recipient_data['user']['name'] ?? "Unknown user"; ?></h5>
                             <p class="card-text"><?= strlen($recipient_data['message']['message']) > 50 ? substr($recipient_data['message']['message'], 0, 50) . "..." : $recipient_data['message']['message'] ?></p>
+                        </div>
+                        <div class="card-footer mt-auto">
+                            <p class="card-text"><small class="text-muted"><?= date("F d, Y h:i a", strtotime($recipient_data['message']['created']))  ?></small></p>
                         </div>
                     </div>
                 </div>
@@ -104,6 +114,37 @@
         </a>
 
     <?php endforeach; ?> -->
-
-
 </div>
+
+<script>
+    $(document).ready(function() {
+        $(".btn-delete").click(function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            let _this = $(this);
+
+            if (confirm("Are you sure you want to delete this message?")) {
+                var userId = $(this).data('userid');
+                $.ajax({
+                    url: "<?= $this->Html->url(array('controller' => 'messages', 'action' => 'delete_messages')) ?>",
+                    type: "GET",
+                    data: {
+                        userId: userId
+                    },
+                    success: function(response) {
+                        response = JSON.parse(response);
+                        if (response.status) {
+                            _this.closest(".message-row").hide('show', function() {
+                                $(this).remove();
+                            });
+                        } else {
+                            alert(response.message);
+                        }
+                    }
+                });
+            }
+
+        });
+    })
+</script>

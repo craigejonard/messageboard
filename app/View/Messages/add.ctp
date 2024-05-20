@@ -79,7 +79,10 @@
                 dataType: "JSON",
                 success: function(response) {
                     displayStatus(response);
-                    console.log(response);
+
+                    if (response.status) {
+                        form.trigger("reset");
+                    }
                 }
             })
         });
