@@ -6,6 +6,8 @@ class MessagesController extends AppController
 
     public function index()
     {
+        $search = $this->request->query('search') ?? "";
+
         // Define the raw SQL query
         $sql = "
             SELECT user.id, user.profile_picture, user.name, message.message, message.created
@@ -15,11 +17,10 @@ class MessagesController extends AppController
                 WHERE messages.status = 1 AND (recipient_id = {$this->Auth->user('id')} OR sender_id = {$this->Auth->user('id')})
                 GROUP BY other_user) AS subquery
             LEFT JOIN users user ON subquery.other_user = user.id
-            JOIN messages message ON user.id = message.sender_id OR user.id = message.recipient_id 
-            AND message.id = (
+            JOIN messages message ON message.id = (
                 SELECT m2.id
                 FROM messages m2
-                WHERE (m2.sender_id = user.id OR m2.recipient_id = user.id)
+                WHERE (m2.sender_id = user.id OR m2.recipient_id = user.id) AND m2.status = 1 AND m2.message LIKE '%$search%'
                 ORDER BY m2.created DESC
                 LIMIT 1
             )
@@ -29,15 +30,19 @@ class MessagesController extends AppController
         // Execute the query
         $results = $this->Message->query($sql);
 
-        // Process the results if necessary
-        foreach ($results as $result) {
-            $userId = $result['user']['id'];
-            $userName = $result['user']['name'];
-            // Do something with $userId and $userName
-        }
-
         // Pass the results to the view if needed
         $this->set('recipients', $results);
+
+        if ($this->request->is('ajax')) {
+            $this->autoRender = false;
+
+            die(json_encode(
+                array(
+                    'status' => true,
+                    'recipients' => $results
+                )
+            ));
+        }
     }
 
     public function delete_messages()
