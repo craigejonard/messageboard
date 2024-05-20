@@ -41,7 +41,6 @@ class AppController extends Controller
                 "controller" => "messages",
                 "action" => "index"
             ),
-
             "authenticate" => array(
                 "Form" => array(
                     "fields" => array(

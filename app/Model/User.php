@@ -13,6 +13,16 @@ class User extends AppModel
 				//'last' => false, // Stop validation after this rule
 				//'on' => 'create', // Limit validation to 'create' or 'update' operations
 			),
+			'between' => array(
+				'rule' => array('between', 5, 20),
+				'message' => 'Name must be between 5 to 20 characters.'
+			)
+		),
+		'gender' => array(
+			'required' => array(
+				'rule' => 'notBlank',
+				'message' => 'Please input your gender',
+			)
 		),
 		'email' => array(
 			'email' => array(
@@ -52,6 +62,21 @@ class User extends AppModel
 				'rule' => array('comparePasswords', 'password'),
 				'message' => 'Passwords do not match'
 			)
+		),
+		'profile_picture' => array(
+			'valid' => array(
+				'rule' => array('validateImage'),
+				'message' => 'Please upload a valid image.'
+			),
+			'fileSize' => array(
+				'rule' => array('fileSize', '<=', '1MB'),
+				'message' => 'Image must be less than 1MB.'
+			),
+			'fileExtension' => array(
+				'rule' => array('fileExtension', array('jpg', 'jpeg', 'png', 'gif')),
+				'message' => 'Please upload a valid image file.'
+			)
+
 		)
 	);
 

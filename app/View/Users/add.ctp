@@ -37,18 +37,26 @@
 
 <script>
     $(document).ready(function() {
+
+
         $("#UserAddForm").on("submit", function(e) {
             e.preventDefault();
 
             let _form = $(this).serializeArray();
 
             $.ajax({
-                url: "add",
+                url: "<?php echo $this->Html->url(array("controller" => "users", "action" => "add")) ?>",
                 data: _form,
                 type: "POST",
                 dataType: "JSON",
                 success: function(response) {
                     displayStatus(response);
+
+                    if (response.status) {
+                        setTimeout(() => {
+                            window.location.href = "<?php echo $this->Html->url(array("controller" => "users", "action" => "thank_you")) ?>";
+                        }, 2000);
+                    }
                 }
             })
         });

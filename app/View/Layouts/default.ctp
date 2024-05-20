@@ -27,8 +27,8 @@
 	<?php
 	echo $this->Html->meta('icon');
 
-	echo $this->Html->css(['bootstrap.min.css', 'jquery-ui.min.css']);
-	echo $this->Html->script(["jquery.min.js", 'jquery-ui.min.js']);
+	echo $this->Html->css(['bootstrap.min.css', 'jquery-ui.min.css', 'select2.min.css', 'select2-bootstrap.min.css']);
+	echo $this->Html->script(["jquery.min.js", 'jquery-ui.min.js', 'select2.min.js']);
 
 	echo $this->fetch('meta');
 	echo $this->fetch('css');
@@ -50,6 +50,7 @@
 								"Messages",
 								array(
 									"controller" => "messages",
+									"action" => "index"
 								),
 								array(
 									"class" => "nav-link"
