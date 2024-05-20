@@ -1,18 +1,31 @@
 <div class="container">
     <div class="row">
-        <div class="justify-content-start">
+        <div class="d-flex align-items-center justify-content-start" style="gap: 10px;">
             <h1>Conversation</h1>
             <span><?= $this->Html->link(
                         "Back to Messages list",
                         array(
                             "controller" => "messages",
                             "action" => "index"
+                        ),
+                        array(
+                            "class" => "btn btn-warning btn-sm"
                         )
                     ); ?>
             </span>
 
         </div>
     </div>
+
+    <div class="row">
+        <div class="col my-2 p-0">
+            <div class="form-inline">
+                <label for="search">Search</label>
+                <input type="text" id="search" class="form-control form-control-sm ml-2" placeholder="Search for messages">
+            </div>
+        </div>
+    </div>
+
     <form id="addMessageForm">
         <div class="form-group row">
             <div class="col-10 pl-0">
@@ -194,6 +207,51 @@
                 }
             });
         });
+
+        $("#search").on("keyup", debounce(function() {
+            let search = $(this).val().toLowerCase();
+            $.ajax({
+                url: "<?= $this->Html->url(array('controller' => 'messages', 'action' => 'conversation', $recipient)) ?>",
+                data: {
+                    search: search
+                },
+                type: "GET",
+                dataType: "json",
+                success: function(response) {
+                    if (response.status) {
+                        $(".convo_body").empty();
+                        response.messages.forEach(function(message) {
+                            let template = message.Message.sender_id == <?= $_SESSION['Auth']['User']['id'] ?> ? $("#sender").html() : $("#recipient").html();
+
+                            template = template.replace("{{message_id}}", message.Message.id);
+                            template = template.replace("{{name}}", message.sender.name);
+                            template = template.replace("{{msg}}", message.Message.message);
+                            template = template.replace("{{datetime}}", new Date(message.Message.created).toLocaleDateString("en-US", {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                                hour: "numeric",
+                                minute: "numeric"
+                            }));
+                            template = template.replace("{{profile_picture}}", message.sender.profile_picture);
+                            $(".convo_body").append(template);
+                        });
+                    }
+                }
+            });
+        }, 300));
+
+        function debounce(func, wait) {
+            let timeout;
+            return function() {
+                const context = this,
+                    args = arguments;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    func.apply(context, args);
+                }, wait);
+            };
+        }
 
         $(document).on("click", ".delete-message", function() {
             let messageId = $(this).data("message-id");

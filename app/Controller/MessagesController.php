@@ -121,6 +121,7 @@ class MessagesController extends AppController
 
     public function conversation($recipient)
     {
+        $search = $this->request->query('search') ?? "";
 
         $this->Paginator->settings = array(
             'fields' => array('Message.*', 'sender.id', 'sender.name', 'sender.profile_picture', 'recipient.id', 'recipient.name', 'recipient.profile_picture'),
@@ -144,6 +145,7 @@ class MessagesController extends AppController
             ),
             'conditions' => array(
                 "status" => 1,
+                "message LIKE" => "%$search%",
                 'OR' => array(
                     array(
                         'Message.sender_id' => $this->Auth->user('id'),
@@ -162,6 +164,18 @@ class MessagesController extends AppController
         $messages = $this->Paginator->paginate('Message');
         $this->set('recipient', $recipient); // Pass the recipient ID to the view (optional
         $this->set('messages', $messages);
+
+        if ($this->request->is('ajax')) {
+            $this->autoRender = false;
+
+            die(json_encode(
+                array(
+                    'status' => true,
+                    'messages' => $messages,
+                    'hasNext' => $this->request->params['paging']['Message']['nextPage']
+                )
+            ));
+        }
     }
 
     public function load_messages()
