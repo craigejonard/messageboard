@@ -23,7 +23,7 @@
     }
 
     .container a:hover .card {
-        transform: scale(1.05);
+        transform: scale(1.01);
         background-color: #f8f9fa;
     }
 </style>
@@ -117,7 +117,6 @@
 <script>
     $(document).ready(function() {
 
-
         $(".btn-delete").click(function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -162,8 +161,6 @@
                         response.recipients.forEach(function(recipient) {
                             let temp = template;
 
-                            console.log(recipient.user);
-
                             temp = temp.replace(/{{profile_picture}}/g, (recipient.user.profile_picture) ?? 'placeholder.png');
                             temp = temp.replace(/{{name}}/g, recipient.user.name);
                             temp = temp.replace(/{{message}}/g, recipient.message.message);
@@ -171,6 +168,8 @@
                             temp = temp.replace(/{{userId}}/g, recipient.user.id);
                             $(".convo_body").append(temp);
                         });
+                    } else {
+                        alert("Something went wrong!");
                     }
                 }
             });

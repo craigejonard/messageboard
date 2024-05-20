@@ -44,7 +44,10 @@
         </div>
         <div class="col">
             <form id="profileForm">
-
+                <div class="form-group row">
+                    <label class="col-sm-2" for="email">Name</label>
+                    <input class="col-sm-10 form-control" name="name" type="text" id="name" value="<?= $user["name"] ?? "" ?>">
+                </div>
                 <div class="form-group row">
                     <label class="col-sm-2" for="email">Email</label>
                     <input class="col-sm-10 form-control" name="email" type="text" id="email" value="<?= $user["email"] ?? "" ?>">
