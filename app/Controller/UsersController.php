@@ -47,6 +47,7 @@ class UsersController extends AppController
         if ($this->request->is("post")) {
             $this->User->create();
 
+            $this->request->data['created_ip'] = $_SERVER['REMOTE_ADDR'];
             if ($this->User->save($this->request->data)) {
                 die(json_encode(
                     array(
@@ -98,6 +99,7 @@ class UsersController extends AppController
             $this->User->id = $userId;
 
             $request = $this->formatRequest($this->request->data);
+            $request = array_merge($request, ['modified_ip' => $_SERVER['REMOTE_ADDR']]);
 
             if ($this->User->save($request)) {
                 $updatedUserData = $this->User->findById($userId);
@@ -146,6 +148,7 @@ class UsersController extends AppController
 
             if (move_uploaded_file($profilePictureTmpName, $profilePicturePath)) {
                 $this->User->saveField('profile_picture', 'profile_pictures' . DS . $loggedInUser['id'] . DS . $profilePictureName);
+                $this->user->saveField('modified_ip', $_SERVER['REMOTE_ADDR']);
 
                 $updatedUserData = $this->User->findById($userId);
 

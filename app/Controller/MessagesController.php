@@ -7,6 +7,7 @@ class MessagesController extends AppController
     public function index()
     {
         $search = $this->request->query('search') ?? "";
+        $page = (($this->request->query('page') ?? 1) - 1) * 10;
 
         // Define the raw SQL query
         $sql = "
@@ -25,8 +26,8 @@ class MessagesController extends AppController
                 LIMIT 1
             )
             GROUP BY user.id
+            LIMIT $page, 10
         ";
-
 
         // Execute the query
         $results = $this->Message->query($sql);
@@ -58,7 +59,7 @@ class MessagesController extends AppController
             $recipient = $this->request->query("userId");
             //soft delete
             $delete = $this->Message->updateAll(
-                array('status' => 0),
+                array('status' => 0, 'modified_ip' => $_SERVER['REMOTE_ADDR']),
                 array(
                     'OR' => array(
                         array(
@@ -92,7 +93,8 @@ class MessagesController extends AppController
             $message = $this->request->query("messageId");
             $this->Message->id = $message;
             $delete = $this->Message->save(array(
-                'status' => 0
+                'status' => 0,
+                'modified_ip' => $_SERVER['REMOTE_ADDR']
             ));
 
             if ($delete) {
@@ -246,6 +248,8 @@ class MessagesController extends AppController
             $this->request->data['Message']['message'] = $this->request->data['message'];
             $this->request->data['Message']['sender_id'] = $userId;
             $this->request->data['Message']['recipient_id'] = $recipient;
+            $this->request->data['Message']['created_ip'] = $_SERVER['REMOTE_ADDR'];
+
 
             if ($this->Message->save($this->request->data)) {
 
@@ -274,6 +278,7 @@ class MessagesController extends AppController
 
             $userId = $this->Auth->user('id');
             $this->request->data['Message']['sender_id'] = $userId;
+            $this->request->data['Message']['created_ip'] = $_SERVER['REMOTE_ADDR'];
 
             if ($this->Message->save($this->request->data)) {
                 $this->autoRender = false;

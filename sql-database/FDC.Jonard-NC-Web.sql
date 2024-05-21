@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: May 20, 2024 at 12:03 PM
+-- Generation Time: May 21, 2024 at 08:41 AM
 -- Server version: 10.4.21-MariaDB
 -- PHP Version: 7.4.29
 SET
@@ -23,7 +23,7 @@ SET
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `Jonard-NC-Web`
+-- Database: `craigeDB`
 --
 -- --------------------------------------------------------
 --
@@ -37,7 +37,9 @@ CREATE TABLE
     `sender_id` int (11) NOT NULL,
     `status` int (11) DEFAULT 1,
     `created` datetime DEFAULT current_timestamp(),
-    `modified` datetime DEFAULT current_timestamp()
+    `modified` datetime DEFAULT current_timestamp(),
+    `created_ip` varchar(50) DEFAULT NULL,
+    `modified_ip` varchar(50) DEFAULT NULL
   ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 -- --------------------------------------------------------
@@ -56,7 +58,9 @@ CREATE TABLE
     `profile_picture` text DEFAULT NULL,
     `last_login_time` datetime DEFAULT NULL,
     `created` datetime DEFAULT NULL,
-    `modified` datetime DEFAULT NULL
+    `modified` datetime DEFAULT NULL,
+    `created_ip` varchar(50) DEFAULT NULL,
+    `modified_ip` varchar(50) DEFAULT NULL
   ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 --

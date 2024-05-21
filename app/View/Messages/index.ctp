@@ -99,6 +99,11 @@
             </div>
         <?php endif; ?>
 
+        <?php if ($this->Paginator->hasNext()) : ?>
+            <div class="row justify-content-center mb-2">
+                <button class="btn btn-primary btn-sm" id="load-more" data-page="2">Load more</button>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -152,7 +157,46 @@
             }
         });
 
+        $(document).on("click", "#load-more", function() {
+            let _this = $(this);
+            let page = parseInt($(this).data('page')) + 1;
+            let search = $("#search").val().toLowerCase();
 
+            $.ajax({
+                url: "<?= $this->Html->url(array('controller' => 'messages', 'action' => 'index')) ?>",
+                data: {
+                    page: page,
+                    search: search
+                },
+                type: "GET",
+                dataType: "json",
+                success: function(response) {
+                    if (response.status) {
+                        if (response.recipients.length == 0) {
+                            alert("No more messages found!");
+                            _this.remove();
+                            return;
+                        }
+
+                        let template = $("#message_list_temp").html();
+                        response.recipients.forEach(function(recipient) {
+                            let temp = template;
+
+                            temp = temp.replace(/{{profile_picture}}/g, (recipient.user.profile_picture) ?? 'placeholder.png');
+                            temp = temp.replace(/{{name}}/g, recipient.user.name);
+                            temp = temp.replace(/{{message}}/g, recipient.message.message);
+                            temp = temp.replace(/{{created}}/g, recipient.message.created);
+                            temp = temp.replace(/{{userId}}/g, recipient.user.id);
+                            $(".convo_body").append(temp);
+                        });
+
+                        $("#load-more").data('page', page);
+                    } else {
+                        alert("Something went wrong!");
+                    }
+                }
+            });
+        });
 
 
         $(document).on("click", ".show-more .btn", function(e) {
