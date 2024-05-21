@@ -54,7 +54,7 @@
                 </div>
                 <div class="form-group row">
                     <label class="col-sm-2" for="password">Password</label>
-                    <input class="col-sm-10 form-control" name="password" type="password" id="password" value="password">
+                    <input class="col-sm-10 form-control" name="password" type="password" id="password" placeholder="********">
                 </div>
                 <div class="form-group row">
                     <label class="col-sm-2" for="birthdate">Birthdate</label>

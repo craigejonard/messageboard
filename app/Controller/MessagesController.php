@@ -10,7 +10,7 @@ class MessagesController extends AppController
 
         // Define the raw SQL query
         $sql = "
-            SELECT user.id, user.profile_picture, user.name, message.message, message.created
+            SELECT user.id, user.profile_picture, user.name, message.id, message.message, message.created
             FROM 
                 (SELECT IF(recipient_id = {$this->Auth->user('id')}, sender_id, recipient_id) AS other_user
                 FROM messages
@@ -26,6 +26,7 @@ class MessagesController extends AppController
             )
             GROUP BY user.id
         ";
+
 
         // Execute the query
         $results = $this->Message->query($sql);

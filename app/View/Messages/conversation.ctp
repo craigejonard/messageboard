@@ -26,6 +26,11 @@
         </div>
     </div>
 
+    <div class="row">
+        <div class="col-12 p-0 statusMessage">
+        </div>
+    </div>
+
     <form id="addMessageForm">
         <div class="form-group row">
             <div class="col-10 pl-0">
@@ -41,7 +46,7 @@
         <?php foreach ($messages as $message) : ?>
             <?php if ($message['Message']['recipient_id'] == $_SESSION['Auth']['User']['id']) : ?>
                 <div class="col-12 p-0">
-                    <div class="card mb-3 w-75">
+                    <div class="card mb-3 w-75 message-row">
                         <div class="row no-gutters">
                             <div class="col-2 border-right">
                                 <?php echo $this->html->image(
@@ -58,7 +63,10 @@
                             <div class="col-10 d-flex flex-column">
                                 <div class="card-body">
                                     <h5 class="card-title"><?= $message['sender']['name'] ?? "Unknown user"; ?></h5>
-                                    <p class="card-text"><?= strlen($message['Message']['message']) > 50 ? substr($message['Message']['message'], 0, 50) . "..." : $message['Message']['message'] ?></p>
+                                    <p class="card-text" data-id="<?= $message['Message']['id'] ?>"><?= $message['Message']['message'] ?></p>
+                                    <div class="row justify-content-center align-items-center show-more">
+
+                                    </div>
                                 </div>
                                 <div class="card-footer mt-auto">
                                     <p class="card-text"><small class="text-muted"><?= date("F d, Y h:i a", strtotime($message['Message']['created']))  ?></small></p>
@@ -69,7 +77,7 @@
                 </div>
             <?php else : ?>
                 <div class="col-12 pull-right p-0">
-                    <div class="card ml-auto mb-3 w-75 text-right">
+                    <div class="card ml-auto mb-3 w-75 text-right message-row">
                         <div class="row no-gutters">
                             <div class="col-10 d-flex flex-column">
                                 <div class="card-body">
@@ -79,7 +87,10 @@
                                         </div>
                                     </div>
                                     <h5 class="card-title"><?= $message['sender']['name'] ?? "Unknown user"; ?></h5>
-                                    <p class="card-text"><?= $message['Message']['message'] ?></p>
+                                    <p class="card-text" data-id="<?= $message['Message']['id'] ?>"><?= $message['Message']['message'] ?></p>
+                                    <div class="row justify-content-center align-items-center show-more">
+
+                                    </div>
                                 </div>
                                 <div class="card-footer mt-auto">
                                     <p class="card-text"><small class="text-muted"><?= date("F d, Y h:i a", strtotime($message['Message']['created']))  ?></small></p>
@@ -114,7 +125,7 @@
 
 <template id="recipient">
     <div class="col-12 p-0">
-        <div class="card mb-3 w-75">
+        <div class="card mb-3 w-75 message-row">
             <div class="row no-gutters">
                 <div class="col-2 border-right">
                     <img class="img-thumbnail border-0" src="/messageboard/img/{{profile_picture}}">
@@ -125,7 +136,10 @@
                             <button class="btn btn-danger delete-message" data-message-id="{{message_id}}">Delete</button>
                         </div>
                         <h5 class="card-title">{{name}}</h5>
-                        <p class="card-text">{{msg}}</p>
+                        <p class="card-text" data-id="{{message_id}}">{{msg}}</p>
+                        <div class="row justify-content-center align-items-center show-more">
+
+                        </div>
                     </div>
                     <div class="card-footer">
                         <p class="card-text"><small class="text-muted">{{datetime}}</small></p>
@@ -138,9 +152,9 @@
 
 <template id="sender">
     <div class="col-12 pull-right p-0">
-        <div class="card ml-auto mb-3 w-75 text-right">
+        <div class="card ml-auto mb-3 w-75 text-right message-row">
             <div class="row no-gutters">
-                <div class="col-10">
+                <div class="col-10 d-flex flex-column">
                     <div class="card-body">
                         <div class="position-relative">
                             <div class="position-absolute" style="z-index: 1000; top: 0; left: 0;">
@@ -148,9 +162,12 @@
                             </div>
                         </div>
                         <h5 class="card-title">{{name}}</h5>
-                        <p class="card-text">{{msg}}</p>
+                        <p class="card-text" data-id="{{message_id}}">{{msg}}</p>
+                        <div class="row justify-content-center align-items-center show-more">
+
+                        </div>
                     </div>
-                    <div class="card-footer">
+                    <div class="card-footer mt-auto">
                         <p class="card-text"><small class="text-muted">{{datetime}}</small></p>
                     </div>
                 </div>
@@ -165,7 +182,43 @@
 <script>
     $(document).ready(function() {
 
+        let text_arr = [];
         let currentPage = 1;
+
+        $(document).find(".message-row .card-text").each(function() {
+            let text = $(this).text();
+            let text_id = $(this).data('id');
+
+            if (text.length > 100) {
+                let short_text = text.substring(0, 100) + "...";
+                let long_text = text;
+
+                $(this).text(short_text);
+                $(this).closest(".card-body").find(".show-more").append(`<button data-id="${text_id}" class="btn btn-primary btn-sm">Show more</button>`);
+
+                text_arr.push({
+                    id: text_id,
+                    text: long_text
+                });
+            }
+        });
+
+        console.log(text_arr);
+
+        $(document).on("click", ".show-more .btn", function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            let _this = $(this);
+            let text_id = _this.data('id');
+
+            let text = text_arr.find(function(item) {
+                return item.id == text_id;
+            });
+
+            _this.closest(".card-body").find(".card-text").text(text.text);
+            _this.remove();
+        });
 
         $(document).on("click", "#load-more", function() {
             currentPage++;
@@ -183,11 +236,13 @@
                     }
 
                     $.each(response.messages, function(index, message) {
+                        let template;
+
                         if (message.Message.sender_id == <?= $_SESSION['Auth']['User']['id'] ?>) {
-                            let template = $("#sender").html();
+                            template = $("#sender").html();
 
                         } else {
-                            let template = $("#recipient").html();
+                            template = $("#recipient").html();
 
                         }
 
@@ -292,23 +347,28 @@
                 dataType: "json",
                 success: function(response) {
 
-                    var message = $("textarea").val();
-                    let template = $("#sender").html();
+                    if (response.status) {
+                        var message = $("textarea").val();
+                        let template = $("#sender").html();
 
-                    template = template.replace("{{message_id}}", response.id);
-                    template = template.replace("{{name}}", "<?= $_SESSION['Auth']['User']['name']; ?>");
-                    template = template.replace("{{msg}}", message);
-                    template = template.replace("{{datetime}}", new Date().toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                        hour: "numeric",
-                        minute: "numeric"
-                    }));
-                    template = template.replace("{{profile_picture}}", "<?= $_SESSION['Auth']['User']['profile_picture'] ?>");
+                        template = template.replace("{{message_id}}", response.id);
+                        template = template.replace("{{name}}", "<?= $_SESSION['Auth']['User']['name']; ?>");
+                        template = template.replace("{{msg}}", message);
+                        template = template.replace("{{datetime}}", new Date().toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                            hour: "numeric",
+                            minute: "numeric"
+                        }));
+                        template = template.replace("{{profile_picture}}", "<?= $_SESSION['Auth']['User']['profile_picture'] ?>");
 
-                    $(".convo_body").prepend(template);
-                    $("textarea").val("");
+                        $(".convo_body").prepend(template);
+                        $("textarea").val("");
+                    } else {
+                        $(".statusMessage").text(response.message).addClass("alert alert-danger p-2").show().delay(1000).fadeOut();
+                    }
+
                 }
             });
         });
